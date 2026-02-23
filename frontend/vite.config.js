@@ -7,6 +7,12 @@ export default defineConfig(({ mode }) => {
   const target = env.VITE_API_BASE_URL || 'http://localhost:6400'
   // Proxy base path without trailing slash (e.g. '/notebook/ns/name/proxy/5173'), or ''
   const proxyBase = (process.env.VITE_BASE_PATH || env.VITE_BASE_PATH || '').replace(/\/$/, '')
+  // When behind Kubeflow proxy, derive the backend proxy base so WebSocket can
+  // bypass the Vite dev server and connect directly to the backend port.
+  const backendPort = new URL(target).port || '6400'
+  const backendProxyBase = proxyBase
+    ? proxyBase.replace(/\/proxy\/\d+$/, `/proxy/${backendPort}`)
+    : ''
 
   return {
     plugins: [
@@ -30,6 +36,7 @@ export default defineConfig(({ mode }) => {
     base: proxyBase ? proxyBase + '/' : '/',
     define: {
       __PROXY_BASE__: JSON.stringify(proxyBase),
+      __BACKEND_PROXY_BASE__: JSON.stringify(backendProxyBase),
     },
     server: {
       host: true,

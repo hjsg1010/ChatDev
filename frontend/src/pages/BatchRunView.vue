@@ -969,24 +969,12 @@ const establishWebSocketConnection = () => {
     return
   }
 
-  const apiBase = import.meta.env.VITE_API_BASE_URL || ''
-  // Defaults: same-origin (works with Vite dev proxy)
-  const defaultScheme = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  let scheme = defaultScheme
-  let host = window.location.host
-
-  // In production, prefer explicit API base if provided
-  if (!import.meta.env.DEV && apiBase) {
-    try {
-      const api = new URL(apiBase, window.location.origin)
-      scheme = api.protocol === 'https:' ? 'wss:' : 'ws:'
-      host = api.host
-    } catch {
-      // keep defaults
-    }
-  }
-
-  const wsUrl = `${scheme}//${host}${__PROXY_BASE__}/ws`
+  const scheme = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const host = window.location.host
+  // When behind Kubeflow proxy, connect directly to backend port to bypass
+  // Vite's dev server (its WebSocket proxy doesn't survive double-proxying).
+  const wsBase = __BACKEND_PROXY_BASE__ || __PROXY_BASE__
+  const wsUrl = `${scheme}//${host}${wsBase}/ws`
   const socket = new WebSocket(wsUrl)
   ws = socket
 
