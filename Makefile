@@ -12,9 +12,11 @@ server: ## Start the backend server in the background
 	@echo "Starting server in background..."
 	@uv run python server_main.py --port 6400 --reload &
 
+VITE_BASE_PATH ?= /
+
 .PHONY: client
 client: ## Start the frontend development server
-	@cd frontend && npx cross-env VITE_API_BASE_URL=http://localhost:6400 npm run dev
+	@cd frontend && npx cross-env VITE_API_BASE_URL=http://localhost:6400 VITE_BASE_PATH=$(VITE_BASE_PATH) npm run dev
 
 .PHONY: stop
 stop: ## Stop backend and frontend servers cross-platform
