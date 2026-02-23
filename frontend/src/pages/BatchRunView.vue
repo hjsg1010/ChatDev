@@ -971,10 +971,8 @@ const establishWebSocketConnection = () => {
 
   const scheme = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
   const host = window.location.host
-  // When behind Kubeflow proxy, connect directly to backend port to bypass
-  // Vite's dev server (its WebSocket proxy doesn't survive double-proxying).
-  const wsBase = __BACKEND_PROXY_BASE__ || __PROXY_BASE__
-  const wsUrl = `${scheme}//${host}${wsBase}/ws`
+  const wsUrl = `${scheme}//${host}${__PROXY_BASE__}/ws`
+  console.log('[WS] Connecting to:', wsUrl)
   const socket = new WebSocket(wsUrl)
   ws = socket
 
