@@ -9,8 +9,25 @@ export default defineConfig(({ mode }) => {
   const proxyBase = (process.env.VITE_BASE_PATH || env.VITE_BASE_PATH || '').replace(/\/$/, '')
 
   return {
-    plugins: [vue()],
-    base: './',
+    plugins: [
+      vue(),
+      // Re-add the proxy base path that Kubeflow strips from incoming requests
+      proxyBase && {
+        name: 'proxy-base-rewrite',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            if (req.url && !req.url.startsWith(proxyBase)) {
+              // Skip /api and /ws — let Vite's dev proxy handle them directly
+              if (!req.url.startsWith('/api') && !req.url.startsWith('/ws')) {
+                req.url = proxyBase + req.url
+              }
+            }
+            next()
+          })
+        }
+      },
+    ].filter(Boolean),
+    base: proxyBase ? proxyBase + '/' : '/',
     define: {
       __PROXY_BASE__: JSON.stringify(proxyBase),
     },
