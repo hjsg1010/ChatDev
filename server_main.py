@@ -66,6 +66,7 @@ def main():
         host=args.host,
         port=args.port,
         reload=args.reload,
+        reload_exclude=["logs", "data", "WareHouse"],
         log_level=args.log_level,
         ws="wsproto",
     )
