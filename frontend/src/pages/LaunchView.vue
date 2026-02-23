@@ -649,6 +649,7 @@ const viewMode = ref('chat')
 // WebSocket reference
 let ws = null
 let sessionId = null
+let pingInterval = null
 
 const filteredWorkflowFiles = computed(() => {
   // If the file search box is untouched, return all workflows
@@ -693,6 +694,10 @@ const resetConnectionState = ({ closeSocket = true } = {}) => {
     }
   }
 
+  if (pingInterval) {
+    clearInterval(pingInterval)
+    pingInterval = null
+  }
   ws = null
   sessionId = null
   isConnectionReady.value = false
@@ -1374,6 +1379,12 @@ const establishWebSocketConnection = () => {
     // Ignore events from stale sockets
     if (ws !== socket) return
     console.log('WebSocket connected')
+    // Keep connection alive through reverse proxies (nginx idle timeout ~60s)
+    pingInterval = setInterval(() => {
+      if (ws === socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: 'ping' }))
+      }
+    }, 25000)
   }
 
   socket.onmessage = (event) => {
@@ -1381,6 +1392,9 @@ const establishWebSocketConnection = () => {
     if (ws !== socket) return
 
     const msg = JSON.parse(event.data)
+
+    // Ignore heartbeat responses
+    if (msg.type === 'pong') return
 
     if (msg.type === 'connection') {
       sessionId = msg.data?.session_id || null
