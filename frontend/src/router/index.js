@@ -24,7 +24,7 @@ const routes = [
 ]
 
 const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHistory(__PROXY_BASE__ ? __PROXY_BASE__ + '/' : '/'),
     routes,
     scrollBehavior(to, from, savedPosition) {
         if (savedPosition) {

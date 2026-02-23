@@ -986,7 +986,7 @@ const establishWebSocketConnection = () => {
     }
   }
 
-  const wsUrl = `${scheme}//${host}/ws`
+  const wsUrl = `${scheme}//${host}${__PROXY_BASE__}/ws`
   const socket = new WebSocket(wsUrl)
   ws = socket
 
