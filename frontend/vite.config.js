@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
     plugins: [vue()],
     server: {
       host: true,
+      allowedHosts: ['kubeflow.aistudio.aip.samsungds.net'],
       proxy: {
         '/api': {
           target: target,
