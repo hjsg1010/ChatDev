@@ -66,6 +66,7 @@ def main():
         host=args.host,
         port=args.port,
         reload=args.reload,
+        reload_dirs=["server", "runtime", "utils", "entity", "workflow", "functions", "schema_registry"],
         log_level=args.log_level,
         ws="wsproto",
     )

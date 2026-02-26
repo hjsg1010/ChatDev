@@ -1,6 +1,6 @@
 import yaml from 'js-yaml'
 
-const apiUrl = (path) => path
+const apiUrl = (path) => __PROXY_BASE__ + path
 
 const addYamlSuffix = (filename) => {
   const trimmed = (filename || '').trim()

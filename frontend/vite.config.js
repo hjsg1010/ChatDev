@@ -5,11 +5,35 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const target = env.VITE_API_BASE_URL || 'http://localhost:6400'
+  // Proxy base path without trailing slash (e.g. '/notebook/ns/name/proxy/5173'), or ''
+  const proxyBase = (process.env.VITE_BASE_PATH || env.VITE_BASE_PATH || '').replace(/\/$/, '')
 
   return {
-    plugins: [vue()],
+    plugins: [
+      vue(),
+      // Re-add the proxy base path that Kubeflow strips from incoming requests
+      proxyBase && {
+        name: 'proxy-base-rewrite',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            if (req.url && !req.url.startsWith(proxyBase)) {
+              // Skip /api and /ws — let Vite's dev proxy handle them directly
+              if (!req.url.startsWith('/api') && !req.url.startsWith('/ws')) {
+                req.url = proxyBase + req.url
+              }
+            }
+            next()
+          })
+        }
+      },
+    ].filter(Boolean),
+    base: proxyBase ? proxyBase + '/' : '/',
+    define: {
+      __PROXY_BASE__: JSON.stringify(proxyBase),
+    },
     server: {
       host: true,
+      allowedHosts: ['kubeflow.aistudio.aip.samsungds.net'],
       proxy: {
         '/api': {
           target: target,
